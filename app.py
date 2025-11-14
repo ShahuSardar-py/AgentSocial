@@ -46,15 +46,15 @@ def show_card(title, content):
     st.markdown(
         f"""
         <div style="
-            background: #f7f7f9;
+            background: #6673ff;
             padding: 18px 22px;
             border-radius: 12px;
             border: 1px solid #e0e0e0;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             margin-top: 10px;
         ">
-            <h4 style="margin: 0 0 10px">{title}</h4>
-            <p style="font-size: 16px; line-height: 1.5;">{content}</p>
+            <p style="margin: 0 0 px">{title}</p>
+            <p style="font-size: 1px; line-height: 1.5;">{content}</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -151,7 +151,7 @@ with rightcol:
                 model="gemini-2.5-flash",
                 contents=[prompt, image_part]
             )
-        show_card("Captions", cap.text)
+        show_card("Your caption:", cap.text)
         st.session_state["caption"]=cap.text
 
 
