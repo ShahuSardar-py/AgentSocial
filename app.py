@@ -2,98 +2,22 @@ import streamlit as st
 import numpy as np
 import streamlit as st
 from google import genai
-from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 import os 
-from google.genai import types
 import requests
 from bs4 import BeautifulSoup
 
+#seeting up the cleint 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GAPI"))
 
+
 st.set_page_config(page_icon='🎇', page_title='AgentSocial')
+st.title("AgentSocial")
+st.caption('Your social media posting assistant')
 
-st.title("Gemini Image Understanding Demo")
-
-
-#understadn image
-uploaded= st.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
-if uploaded:
-     st.image(uploaded, use_column_width=True)
-     image_bytes = uploaded.getvalue()
-     
-     image_part = types.Part.from_bytes(
-        data=image_bytes, 
-        mime_type=uploaded.type  # preserves correct mimetype
-    )
-     if st.button("Analyze Image"):
-        with st.spinner("Calling Gemini..."):
-
-            try:
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[
-                        "Understand the image/graphic design & give a sumnmary about it. explain what the design is trying to mention to the end-user",
-                        image_part,
-                    ],
-                )
-
-                st.subheader("Gemini Response:")
-                st.write(response.text)
-
-            except Exception as e:
-                st.error(f"Error: {e}") 
-
-st.markdown("---")
-#caption gen
-st.subheader("Generate Caption")
-
-tone = st.selectbox(
-    "Select Caption Tone",
-    ["Professional", "Friendly", "Funny", "Luxurious", "Minimal"]
-    )
-
-style = st.selectbox(
-    "Select Caption Style",
-    ["Short punchline", "Long storytelling", "Sales-focused", "Informative"]
-    )
-
-cta = st.text_input("Call-to-action (optional, e.g., 'DM us to order')")
-
-if st.button("Generate Caption"):
-
-    prompt = f"""
-        You are an expert social media caption writer.
-
-        Create a caption for the image provided. 
-        You must analyze the image *yourself* and understand the theme, emotion, product, or message.
-
-        Tone: {tone}
-        Style: {style}
-
-        Personalization:
-        Call-to-action: {cta or 'None'}
-
-        Requirements:
-        - Caption should be natural, engaging and feel human.
-        - Avoid hashtags; they will be generated separately.
-        - Do not mention 'image', 'picture', or describe the analysis process.
-        - Do not repeat prompt details.
-        - Keep it platform-ready for Instagram/Facebook.
-        """
-    with st.spinner("Writing caption..."):
-
-        cap = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[prompt, image_part]
-        )
-
-        st.subheader("Generated Caption")
-        st.success(cap.text)
-        st.session_state["caption"]=cap.text
 def get_trending_hashtags(region="in"):
-
     url = f"https://www.tagsfinder.com/en-{region}/instagram/"
 
     try:
@@ -114,14 +38,104 @@ def get_trending_hashtags(region="in"):
             hashtags.append(text)
 
     return hashtags[:30]
+
+#image understadning --- passing a image or a creative/graphic design 
+uploaded= st.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
+if uploaded:
+     st.image(uploaded, use_column_width=True)
+     image_bytes = uploaded.getvalue()
+     
+     image_part = types.Part.from_bytes(
+        data=image_bytes, 
+        mime_type=uploaded.type  
+    )
+     if st.button("Review My Creative"):
+        with st.spinner("Analyzing your design quality"):
+
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[
+                        """You are an expert graphic desinger. Check the given creative/graphic design give it scores based on your understand in the following format:
+                        - Color theme: /5
+                        - Visual Appeal: /5
+                        - Copy/Content: /5
+                        - Clarity & impact: /5
+
+                        Requirements:
+                        1. Do not give any starter message like "Here is the summary..."
+                        2. Keep the review short, to the point, max 2 lines.
+                        3. Display the scores after the review and score best of your knowledge. 
+
+                        """,
+                        image_part,
+                    ],
+                )
+
+                st.caption("Review of the design:")
+                st.write(response.text)
+
+            except Exception as e:
+                st.error(f"Error: {e}") 
+
+st.markdown("---")
+
+#caption generation
+st.subheader("Generate Post Caption")
+
+tone = st.selectbox(
+    "Select Tone",
+    ["Professional", "Friendly", "Funny", "Minimal"]
+    )
+
+style = st.selectbox(
+    "Select Style",
+    ["Short punchline", "Long storytelling", "Sales-focused", "Direct CTA"]
+    )
+
+cta = st.text_input("Call-to-action (optional, e.g., 'DM us to order')")
+
+if st.button("Generate Caption"):
+
+    prompt = f"""
+        You are an expert social media copywriter.
+
+        Create a caption for the image provided. 
+        You must analyze the image *yourself* and understand the theme, emotion, product, or message.
+
+        Tone: {tone}
+        Style: {style}
+
+        Personalization:
+        Call-to-action: {cta or 'None'}
+
+        Requirements:
+        - Caption should be natural, engaging and feel human.
+        - Avoid hashtags; they will be generated separately.
+        - Do not mention 'image', 'picture', or describe the analysis process.
+        - Do not repeat prompt details.
+        - Keep it platform-ready for Instagram/Facebook.
+        """
+    with st.spinner("hold on tight, generating the best caption..."):
+
+        cap = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[prompt, image_part]
+        )
+
+        st.caption("Generated Caption")
+        st.success(cap.text)
+        st.session_state["caption"]=cap.text
+
+
+
+
 st.markdown("---")
 st.subheader("Generate Hashtags")
 
 if "caption" not in st.session_state:
     st.info("Generate a caption first to enable hashtag generation.")
 else:
-    st.write("Caption:")
-    st.success(st.session_state["caption"])
 
     # --- OPTIONS ---
     niche = st.selectbox(
@@ -133,7 +147,7 @@ else:
     )
 
     region = st.selectbox(
-        "Target Region (optional)",
+        "Target Region",
         ["None", "India", "USA", "UK", "Australia"]
     )
 
@@ -153,20 +167,20 @@ else:
         prompt = f"""
         You are an expert social media strategist.
 
-        Caption:
+        You have a Caption:
         "{caption}"
 
         Niche: {niche}
 
-        Region Trending Hashtags:
+        Region Trending Hashtags of the day:
         {trending_tags}
 
         TASK:
         - Generate a final list of 15–25 Instagram hashtags.
         - Blend the caption context + niche + trending tags.
-        - Avoid spammy tags (#love, #instagood unless actually relevant).
+        - Keep atleast 5-6 hashtags as it is from the {trending_tags} list 
+        - Avoid spammy tags 
         - Avoid duplicates.
-        - Avoid extremely generic or banned tags.
         - Keep them relevant and optimized for organic reach.
         - If region trending hashtags are provided, include 3–5 of the best ones.
         - Output ONLY the hashtags in a single clean list.
@@ -175,7 +189,7 @@ else:
         #tag1 #tag2 #tag3 ...
         """
 
-        with st.spinner("Generating Hashtags..."):
+        with st.spinner("Generating the most trendy Hashtags..."):
 
             tags = client.models.generate_content(
                 model="gemini-2.5-flash",
