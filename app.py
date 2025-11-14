@@ -64,6 +64,29 @@ def show_card(title, content):
 #sidebar to uplaod the image
 st.sidebar.header("Upload your social media post.")
 uploaded= st.sidebar.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
+with st.sidebar.expander("Check best practices"):
+    st.markdown("""
+            » Use 4:5 aspect ratio for Instagram posts — it takes up max screen space.
+
+» Stick to 2–4 colors only — avoids clutter and keeps the design premium.
+
+» Use high-contrast text so your message stays readable on small screens.
+
+» Leave enough breathing space around elements — avoid edge-to-edge text.
+
+» Highlight one main message — don’t overload the graphic.
+
+» Use clean fonts (Sans-serif is best for digital content).
+
+» Keep logos small but visible — don't overshadow the design.
+
+» Use consistent icon styles (outline or solid, not both).
+
+» Avoid too much text — visuals should do the talking.
+
+» Export at high resolution (at least 1080×1350 px).
+
+                """)
 
 leftcol, rightcol = st.columns(2)
 
