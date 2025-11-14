@@ -1,0 +1,37 @@
+# Python virtual environment
+agentsocial/
+.env
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Environment
+.env
+*.env
+.env.*
+
+# Credentials / configs
+config.json
+secrets.json
+
+# Build directories
+build/
+dist/
+*.egg-info/

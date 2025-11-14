@@ -1,0 +1,7 @@
+streamlit
+google-genai
+transformers
+torch
+Pillow
+numpy
+requests
