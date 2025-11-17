@@ -1,23 +1,84 @@
 import streamlit as st
 import numpy as np
-import streamlit as st
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-import os 
+import os
 import requests
 from bs4 import BeautifulSoup
 
-#seeting up the cleint 
+# Setup
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GAPI"))
 
+# ----------- GLOBAL UI STYLE -------------
+st.set_page_config(page_icon='🎇', page_title='AgentSocial', layout="wide")
 
-st.set_page_config(page_icon='🎇', 
-                   page_title='AgentSocial',
-                   layout="wide")
+custom_css = """
+<style>
+
+/* GLOBAL THEME */
+body, .stApp {
+    background-color: #ffffff !important;
+    font-family: 'Inter', sans-serif;
+}
+
+/* HEADERS */
+h1, h2, h3, h4 {
+    color: #1a1a1a !important;
+}
+
+/* CARD COMPONENT */
+.card {
+    background-color: #ffffff;
+    padding: 18px 22px;
+    border-radius: 14px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-top: 12px;
+}
+
+/* BUTTONS */
+.stButton > button {
+    width: 100%;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: 500;
+}
+
+/* SIDEBAR CLEANUP */
+.sidebar-content {
+    padding: 8px;
+    margin-top: 10px;
+}
+
+/* EXPANDERS */
+.streamlit-expanderHeader {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+}
+
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# ----------------------------------------
+
 st.title("AgentSocial")
 st.caption('Your social media posting assistant')
+
+# ----------- FUNCTIONS -----------
+def card(title, content):
+    st.markdown(
+        f"""
+        <div class="card">
+            <h4 style="margin-bottom: 8px; font-size:18px;">{title}</h4>
+            <div style="font-size:15px; line-height:1.6;">{content}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 def get_trending_hashtags(region="in"):
     url = f"https://www.tagsfinder.com/en-{region}/instagram/"
@@ -30,221 +91,143 @@ def get_trending_hashtags(region="in"):
         return []
 
     soup = BeautifulSoup(response.text, "html.parser")
-
     hashtag_elements = soup.select("span.tag")
 
-    hashtags = []
-    for tag in hashtag_elements:
-        text = tag.get_text(strip=True)
-        if text.startswith("#"):
-            hashtags.append(text)
-
+    hashtags = [tag.get_text(strip=True) for tag in hashtag_elements if tag.get_text().startswith("#")]
     return hashtags[:30]
 
 
-def show_card(title, content):
-    st.markdown(
-        f"""
-        <div style="
-            background: #6673ff;
-            padding: 18px 22px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-top: 10px;
-        ">
-            <p style="margin: 0 0 px">{title}</p>
-            <p style="font-size: 1px; line-height: 1.5;">{content}</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# ----------- SIDEBAR -----------
+st.sidebar.header("Upload your social media creative")
 
+uploaded = st.sidebar.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
 
-#sidebar to uplaod the image
-st.sidebar.header("Upload your social media post.")
-uploaded= st.sidebar.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
-with st.sidebar.expander("Check best practices"):
+with st.sidebar.expander("Best Creative Practices"):
     st.markdown("""
-            » Use 4:5 aspect ratio for Instagram posts — it takes up max screen space.
+- Use **4:5 aspect ratio** for Instagram  
+- Stick to **2–4 colors**  
+- Use **high contrast** for text  
+- Allow **breathing space**  
+- Highlight **one main message**  
+- Use **clean fonts**  
+- Avoid too much text  
+- Export in **1080×1350px**  
+    """)
 
-» Stick to 2–4 colors only — avoids clutter and keeps the design premium.
+# ----------- LAYOUT -----------
+leftcol, rightcol = st.columns([1, 1])
 
-» Use high-contrast text so your message stays readable on small screens.
-
-» Leave enough breathing space around elements — avoid edge-to-edge text.
-
-» Highlight one main message — don’t overload the graphic.
-
-» Use clean fonts (Sans-serif is best for digital content).
-
-» Keep logos small but visible — don't overshadow the design.
-
-» Use consistent icon styles (outline or solid, not both).
-
-» Avoid too much text — visuals should do the talking.
-
-» Export at high resolution (at least 1080×1350 px).
-
-                """)
-
-leftcol, rightcol = st.columns(2)
-
-
-#image understadning --- passing the image or the creative/graphic design 
+# ==================================
+# LEFT COLUMN — IMAGE + REVIEW
+# ==================================
 with leftcol:
     if uploaded:
-        st.image(uploaded, use_container_width =True)
+        st.image(uploaded, use_container_width=True)
         image_bytes = uploaded.getvalue()
-     
+
         image_part = types.Part.from_bytes(
-            data=image_bytes, 
-            mime_type=uploaded.type  
+            data=image_bytes,
+            mime_type=uploaded.type
         )
-     
+
         if st.button("Review My Creative"):
-            with st.spinner("Analyzing your graphic design"):
+            with st.spinner("Analyzing your graphic design..."):
                 try:
                     response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[
-                        """You are an expert graphic desinger. Check the given creative/graphic design give it scores based on your understand in the following format:
-                        - Color theme: /5
-                        - Visual Appeal: /5
-                        - Copy/Content: /5
-                        - Clarity & impact: /5
+                        model="gemini-2.5-flash",
+                        contents=[
+                            """
+                            You are an expert graphic desinger. Check the given creative/graphic design give it scores based on your understand in the following format:
+                            - Color theme: /5
+                            - Visual Appeal: /5
+                            - Copy/Content: /5
+                            - Clarity & impact: /5
 
-                        Requirements:
-                        1. Do not give any starter message like "Here is the summary..."
-                        2. Keep the review short, to the point, max 2 lines.
-                        3. Display the scores after the review and score best of your knowledge. 
+                            Requirements:
+                            1. Keep the review short, max 2 lines.
+                            2. Display the scores clearly.
+                            """,
+                            image_part,
+                        ],
+                    )
 
-                        """,
-                        image_part,
-                    ],
-                )
-
-                    st.caption("Genric review for your design:")
-                    st.write(response.text)
+                    card("Creative Review", response.text)
 
                 except Exception as e:
-                    st.error(f"Error: {e}") 
+                    st.error(f"Error: {e}")
 
 
+# ==================================
+# RIGHT COLUMN — CAPTION + HASHTAGS
+# ==================================
 with rightcol:
-    #caption generation
     st.subheader("Generate Caption")
 
-    tone = st.selectbox(
-        "Select Tone",
-        ["Professional", "Friendly", "Funny", "Minimal"]
-    )
-
-    style = st.selectbox(
-        "Select Style",
-        ["Short punchline", "Long storytelling", "Sales-focused", "Direct CTA"]
-    )
-
-    cta = st.text_input("Call-to-action (optional, e.g., 'DM us to order')")
+    tone = st.selectbox("Select Tone", ["Professional", "Friendly", "Funny", "Minimal"])
+    style = st.selectbox("Select Style", ["Short punchline", "Long storytelling", "Sales-focused", "Direct CTA"])
+    langauge= st.selectbox("Select Language", ["English", "Hindi", "Marathi"])
 
     if st.button("Generate Caption"):
-
         prompt = f"""
             You are an expert social media copywriter.
-
-            Create a caption for the image provided. 
-            You must analyze the image *yourself* and understand the theme, emotion, product, or message.
-
+            Create a caption for the image. 
             Tone: {tone}
             Style: {style}
-
-            Personalization:
-            Call-to-action: {cta or 'None'}
+            Langauge: {langauge or 'None'}
 
             Requirements:
-            - Caption should be natural, engaging and feel human.
-            - Avoid hashtags; they will be generated separately.
-            - Do not mention 'image', 'picture', or describe the analysis process.
-            - Do not repeat prompt details.
-            - Keep it platform-ready for Instagram/Facebook.
-            """
-        with st.spinner("hold on tight, generating the best caption..."):
+            - Human-like, engaging caption
+            - No hashtags 
+            - Make sure its gramatically correct. 
+            - No words like 'image' or 'analysis'
+        """
 
+        with st.spinner("Crafting a perfect caption..."):
             cap = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=[prompt, image_part]
             )
-        show_card("Your caption:", cap.text)
-        st.session_state["caption"]=cap.text
 
-
-
+        st.session_state["caption"] = cap.text
+        card("Your Caption", cap.text)
 
     st.markdown("---")
     st.subheader("Generate Hashtags")
 
     if "caption" not in st.session_state:
-        st.info("Generate a caption first to enable hashtag generation.")
+        st.info("Generate a caption first.")
     else:
-
-        # --- OPTIONS ---
+        with st.expander("Your saved caption"):
+            st.write(cap.text)
         niche = st.selectbox(
             "Select Niche",
-            [
-                "General", "Fashion", "Food", "Fitness", "Real Estate",
-                "Beauty", "Travel", "Tech", "Education", "Photography"
-            ]
+            ["General", "Fashion", "Food", "Fitness", "Real Estate", "Beauty", "Travel", "Tech", "Education", "Photography"]
         )
 
-        region = st.selectbox(
-            "Target Region",
-            ["None", "India", "USA", "UK", "Australia"]
-        )
+        region = st.selectbox("Target Region", ["None", "India", "USA", "UK", "Australia"])
 
         if st.button("Generate Hashtags"):
             caption = st.session_state["caption"]
 
-             # --- SCRAPE REGION TAGS ---
             trending_tags = []
             if region != "None":
-                region_code = "in" if region == "India" else \
-                            "us" if region == "USA" else \
-                            "gb" if region == "UK" else \
-                            "au" if region == "Australia" else "in"
+                region_code = {"India": "in", "USA": "us", "UK": "gb", "Australia": "au"}.get(region, "in")
                 trending_tags = get_trending_hashtags(region_code)
 
-            # --- LLM PROMPT ---
             prompt = f"""
-            You are an expert social media strategist.
-
-            You have a Caption:
-            "{caption}"
-
+            Caption: "{caption}"
             Niche: {niche}
+            Trending: {trending_tags}
 
-            Region Trending Hashtags of the day:
-            {trending_tags}
-
-            TASK:
-            - Generate a final list of 15–25 Instagram hashtags.
-            - Blend the caption context + niche + trending tags.
-            - Keep atleast 5-6 hashtags as it is from the {trending_tags} list 
-            - Avoid spammy tags 
-            - Avoid duplicates.
-            - Keep them relevant and optimized for organic reach.
-            - If region trending hashtags are provided, include 3–5 of the best ones.
-            - Output ONLY the hashtags in a single clean list.
-
-            Final Output Format:
-            #tag1 #tag2 #tag3 ...
+            Generate 15–25 hashtags.
+            Include 4–6 trending regional tags.
+            Output ONLY hashtags.
             """
 
-            with st.spinner("Generating the most trendy Hashtags..."):
-
+            with st.spinner("Fetching the best hashtags..."):
                 tags = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=[prompt]
                 )
 
-            
-            st.code(tags.text, language="markdown")
+            card("Your Hashtags", tags.text)
