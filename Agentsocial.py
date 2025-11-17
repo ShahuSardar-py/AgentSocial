@@ -114,12 +114,11 @@ with st.sidebar.expander("Best Creative Practices"):
 - Export in **1080×1350px**  
     """)
 
-# ----------- LAYOUT -----------
+# LAYOUT 
 leftcol, rightcol = st.columns([1, 1])
 
-# ==================================
+
 # LEFT COLUMN — IMAGE + REVIEW
-# ==================================
 with leftcol:
     if uploaded:
         st.image(uploaded, use_container_width=True)
@@ -157,9 +156,8 @@ with leftcol:
                     st.error(f"Error: {e}")
 
 
-# ==================================
-# RIGHT COLUMN — CAPTION + HASHTAGS
-# ==================================
+
+# RIGHT COLUMN — CAPTION + HASHTAGS GEN. 
 with rightcol:
     st.subheader("Generate Caption")
 
@@ -231,3 +229,12 @@ with rightcol:
                 )
 
             card("Your Hashtags", tags.text)
+
+
+# ----------- FOOTER -----------
+st.markdown("---")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric("🔗 Built by", "Eternity AI")
+
