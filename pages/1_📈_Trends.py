@@ -3,10 +3,11 @@ from pytrends.request import TrendReq
 import pandas as pd
 import altair as alt
 import time
-#page setuip
+
+# ---PAGE SETUP----
 st.set_page_config(page_title="Google Trends Insights", layout="wide")
 
-# Sidebar / Input Section
+
 st.title("Trends Insights")
 st.caption("Know what's trending")
 st.divider()

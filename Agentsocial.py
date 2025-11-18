@@ -12,8 +12,11 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GAPI"))
 
 # ----------- GLOBAL UI STYLE -------------
-st.set_page_config(page_icon='🎇', page_title='AgentSocial', layout="wide")
+st.set_page_config(page_icon='🎇', 
+                   page_title='AgentSocial', 
+                   layout="wide")
 
+#custom css
 custom_css = """
 <style>
 
@@ -62,8 +65,7 @@ h1, h2, h3, h4 {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# ----------------------------------------
-
+# header
 st.title("AgentSocial")
 st.caption('Your social media posting assistant')
 
@@ -97,7 +99,7 @@ def get_trending_hashtags(region="in"):
     return hashtags[:30]
 
 
-# ----------- SIDEBAR -----------
+# ----------- SIDEBAR FOR FILE UPLOAD  -----------
 st.sidebar.header("Upload your social media creative")
 
 uploaded = st.sidebar.file_uploader("Upload Image", type=['jpeg', 'png', 'jpg'])
@@ -159,11 +161,20 @@ with leftcol:
 
 # RIGHT COLUMN — CAPTION + HASHTAGS GEN. 
 with rightcol:
+    #Caption generation
     st.subheader("Generate Caption")
 
-    tone = st.selectbox("Select Tone", ["Professional", "Friendly", "Funny", "Minimal"])
-    style = st.selectbox("Select Style", ["Short punchline", "Long storytelling", "Sales-focused", "Direct CTA"])
-    langauge= st.selectbox("Select Language", ["English", "Hindi", "Marathi"])
+    tone = st.selectbox("Select Tone", ["Professional", 
+                                        "Friendly", 
+                                        "Funny", 
+                                        "Minimal"])
+    style = st.selectbox("Select Style", ["Short punchline", 
+                                          "Long storytelling", 
+                                          "Sales-focused", 
+                                          "Direct CTA"])
+    langauge= st.selectbox("Select Language", ["English", 
+                                               "Hindi", 
+                                               "Marathi"])
 
     if st.button("Generate Caption"):
         prompt = f"""
@@ -199,11 +210,24 @@ with rightcol:
             st.write(cap.text)
         niche = st.selectbox(
             "Select Niche",
-            ["General", "Fashion", "Food", "Fitness", "Real Estate", "Beauty", "Travel", "Tech", "Education", "Photography"]
+            ["General", 
+             "Fashion", 
+             "Food", 
+             "Fitness", 
+             "Real Estate", 
+             "Beauty", 
+             "Travel", 
+             "Tech", 
+             "Education", 
+             "Photography"]
         )
 
-        region = st.selectbox("Target Region", ["None", "India", "USA", "UK", "Australia"])
-
+        region = st.selectbox("Target Region", ["None", 
+                                                "India", 
+                                                "USA", 
+                                                "UK", 
+                                                "Australia"])
+        # HASHTAG GENERATION
         if st.button("Generate Hashtags"):
             caption = st.session_state["caption"]
 

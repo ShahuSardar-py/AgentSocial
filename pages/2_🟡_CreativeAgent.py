@@ -4,10 +4,11 @@ from google.genai import types
 from dotenv import load_dotenv
 import os
 
-
+# --- CLEINT SETUP ---
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GAPI"))
 
+# ---PAGE SETUP---
 st.set_page_config(page_icon='🎇', 
                    page_title='Creative agent',
                     layout="wide")
@@ -16,6 +17,7 @@ st.header("Creative agent")
 st.caption("Generate viral hooks scripts")
 st.divider()
 
+# ----- SCRIPT INPUT FORM-----
 with st.form("script_gen", clear_on_submit=False):
     st.header("Enter script details")
     #st.text_input("Platform")
