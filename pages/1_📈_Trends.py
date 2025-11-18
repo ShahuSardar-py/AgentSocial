@@ -84,3 +84,11 @@ if st.button("Get Trends"):
             st.info("No related topics found.")
     except Exception:
         st.info("Related topic data unavailable right now.")
+
+
+# ----------- FOOTER -----------
+st.markdown("---")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric("🔗 Built by", "Eternity AI")

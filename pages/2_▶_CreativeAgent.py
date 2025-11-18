@@ -83,4 +83,12 @@ if submitted:
             )
 
         st.session_state["script"] = script.text
-        st.write("Your Script", script.text)
+        st.write("Script", script.text)
+
+
+# ----------- FOOTER -----------
+st.markdown("---")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric("🔗 Built by", "Eternity AI")
